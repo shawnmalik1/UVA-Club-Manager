@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Tasks</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #003366;
+        }
+
+        .navbar a {
+            color: white !important;
+        }
+
+        .container {
+            margin-top: 30px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: #003366;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Your Events</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Back to Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="text-center">Events You're In</h2>
+        {% if events %}
+            <ul class="list-group" id="event-list">
+                {% for event in joined_events %}
+                    <li class="list-group-item">
+                        <button class="btn btn-primary dropdown-toggle w-100 text-left" type="button"
+                                data-toggle="collapse" data-target="#event-{{ forloop.counter }}"
+                                aria-expanded="false" aria-controls="event-{{ forloop.counter }}">
+                            {{ event.title }} - {{ event.date }}
+                        </button>
+
+                        <div class="collapse mt-2" id="event-{{ forloop.counter }}">
+                            <ul class="list-group">
+                                <li class="list-group-item"><strong>Created By:</strong> {{ event.user }}</li>
+                                <li class="list-group-item"><strong>Title:</strong> {{ event.title }}</li>
+                                <li class="list-group-item"><strong>Date:</strong> {{ event.date }}</li>
+                                <li class="list-group-item"><strong>Description:</strong> {{ event.description }}</li>
+                                <li class="list-group-item"><strong>Members:</strong>
+                                    {% for member in event.members.all %}
+                                        {{ member.username }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </li>
+
+<!-- Tasks Section -->
+<li class="list-group-item">
+    <h5>Tasks</h5>
+    {% if event.clubs.all %}
+    <form method="post" action="{% url 'submit_tasks' event.id %}">
+        {% csrf_token %}
+        <ul>
+            {% for club in event.clubs.all %}
+            <li>
+                <input type="checkbox" name="completed_tasks" value="{{ club.id }}" id="task-{{ club.id }}">
+                <label for="task-{{ club.id }}">
+                    <strong>{{ club.name }}</strong> - {{ club.description }}
+                    <span class="badge badge-info">{{ club.points }} Points</span>
+                </label>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">Submit Completed Tasks</button>
+        </div>
+    </form>
+    {% else %}
+    <p>No tasks available for this event.</p>
+    {% endif %}
+</li>
+
+                             <!-- Events Section -->
+<!-- Uploaded Files for Events Section -->
+<li class="list-group-item">
+    <h5>Uploaded Files for {{ event.title }}</h5>
+    {% if event.uploaded_files.all %}
+        <ul class="list-group">
+            {% for file in event.uploaded_files.all %}
+                <li class="list-group-item file-item">
+                    <!-- Dropdown Button -->
+                    <button class="btn btn-primary dropdown-toggle w-100 text-left" type="button"
+                            data-toggle="collapse" data-target="#file-{{ forloop.counter }}"
+                            aria-expanded="false" aria-controls="file-{{ forloop.counter }}">
+                        {{ file.title }} - Uploaded on {{ file.timestamp|date:"Y-m-d H:i" }}
+                    </button>
+
+                    <!-- Dropdown Content -->
+                    <div class="collapse mt-2" id="file-{{ forloop.counter }}">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Title:</strong> {{ file.title }}</li>
+                            <li class="list-group-item"><strong>Description:</strong> {{ file.description }}</li>
+                            <li class="list-group-item"><strong>Keywords:</strong> {{ file.keywords }}</li>
+                            <li class="list-group-item"><strong>Uploaded On:</strong> {{ file.timestamp|date:"Y-m-d H:i" }}</li>
+                            <li class="list-group-item">
+                                <a href="{{ file.file.url }}" target="_blank" class="btn btn-sm btn-info">View/Download File</a>
+                            </li>
+                            <!-- Delete Button -->
+                            <li class="list-group-item">
+                                <form method="POST" action="{% url 'delete_file_task_view' file.id event.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete File</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No files uploaded for this event.</p>
+    {% endif %}
+</li>
+
+
+                                <!-- Combined Add Task and Upload File -->
+                                <li class="list-group-item mt-4">
+                                    <h5>Add a Task or Upload a File to the Event</h5>
+                                    <button class="btn btn-primary dropdown-toggle w-100 text-left" type="button"
+                                            data-toggle="collapse" data-target="#task-file-form-{{ forloop.counter }}"
+                                            aria-expanded="false" aria-controls="task-file-form-{{ forloop.counter }}">
+                                        Add a Task or Upload a File
+                                    </button>
+                                    <div class="collapse mt-3" id="task-file-form-{{ forloop.counter }}">
+                                        <!-- Add Task Form -->
+                                        <form method="POST" action="{% url 'view_events' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                                            <div class="form-group">
+                                                <label for="task_name_{{ forloop.counter }}">Task Name</label>
+                                                <input type="text" name="name" id="task_name_{{ forloop.counter }}" class="form-control" placeholder="Enter task name" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="task_description_{{ forloop.counter }}">Task Description</label>
+                                                <textarea name="description" id="task_description_{{ forloop.counter }}" class="form-control" placeholder="Enter task description" rows="3" required></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="task_points_{{ forloop.counter }}">Points</label>
+                                                <input type="number" name="points" id="task_points_{{ forloop.counter }}" class="form-control" placeholder="Enter task points" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-block">Add Task</button>
+                                        </form>
+
+                                        <!-- Divider -->
+                                        <hr class="my-4">
+
+                                        <!-- Upload File Form -->
+                                        <form method="POST" action="{% url 'upload_file' event.id %}" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="id_title_{{ forloop.counter }}">Title:</label>
+                                                <input type="text" name="title" id="id_title_{{ forloop.counter }}" class="form-control" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_description_{{ forloop.counter }}">Description:</label>
+                                                <textarea name="description" id="id_description_{{ forloop.counter }}" class="form-control" rows="4" required></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_keywords_{{ forloop.counter }}">Keywords (comma-separated):</label>
+                                                <input type="text" name="keywords" id="id_keywords_{{ forloop.counter }}" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_file_{{ forloop.counter }}">Select File:</label>
+                                                <input type="file" name="file" id="id_file_{{ forloop.counter }}" class="form-control-file" required>
+                                            </div>
+                                            {% if form.errors %}
+                                                <div class="alert alert-danger mt-3">
+                                                    <ul>
+                                                        {% for field, errors in form.errors.items %}
+                                                            <li>{{ field }}: {{ errors|join:", " }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                            <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                                        </form>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <form method="POST" action="{% url 'leave_event' event.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-block">Leave Event</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-center">No events available.</p>
+        {% endif %}
+    </div>
+    <div class="container mt-4">
+    <h2 class="text-center">Events You've Created</h2>
+    {% if events %}
+        <ul class="list-group" id="event-list2">
+            {% for event in users_events %}
+                <li class="list-group-item">
+                    <!-- Dropdown Button -->
+                    <button class="btn btn-primary dropdown-toggle w-100 text-left" type="button"
+                            data-toggle="collapse" data-target="#delete-event-{{ forloop.counter }}"
+                            aria-expanded="false" aria-controls="delete-event-{{ forloop.counter }}">
+                        {{ event.title }} - {{ event.date }}
+                    </button>
+
+                    <!-- Dropdown Content -->
+                    <div class="collapse mt-2" id="delete-event-{{ forloop.counter }}">
+                        <div class="list-group">
+                            <!-- Requested Users -->
+                            <h5>Join Requests</h5>
+                            {% if event.member_requests.all %}
+                                <ul class="list-group">
+                                    {% for user in event.member_requests.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ user.username }}
+                                            <div>
+                                                <!-- Accept Button -->
+                                                <form method="POST" action="{% url 'accept_member' event.id user.id %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                                </form>
+                                                <!-- Reject Button -->
+                                                <form method="POST" action="{% url 'reject_member' event.id user.id %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                                </form>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>No join requests for this event.</p>
+                            {% endif %}
+
+                            <!-- Delete Event -->
+                            <form method="POST" action="{% url 'delete_event' event.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-block">Delete Event</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-center">You have not created any events.</p>
+    {% endif %}
+</div>
+
+    <footer>
+        <p>This system is a class project and is not monitored. Please do not submit any real information.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

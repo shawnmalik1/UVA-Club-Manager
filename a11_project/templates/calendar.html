@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Calendar</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.2/dist/fullcalendar.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #003366;
+        }
+
+        .navbar a {
+            color: white !important;
+        }
+        .container {
+            margin-top: 30px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            font-size: 1.1rem;
+            padding: 10px 20px;  /* Same padding for both buttons */
+            margin-bottom: 20px;
+            border-radius: 5px;
+            width: 200px; /* Set fixed width for consistent size */
+        }
+        .btn-add-event {
+            background-color: #ff6600;
+            color: white;
+        }
+        .btn-add-event:hover {
+            background-color: #e65c00;
+        }
+        .btn-back {
+            background-color: #0056b3;  /* Darker blue */
+            color: white;
+        }
+        .btn-back:hover {
+            background-color: #004494; /* Darker on hover */
+        }
+        #calendar {
+            max-width: 900px;
+            margin: 0 auto;  /* Center the calendar */
+        }
+
+        footer {
+            margin-top: auto;
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Calendar</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Back to Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="text-center">Event Calendar</h1>
+
+        <div class="text-center">
+            <button id="openModal" class="btn btn-add-event">Add Event</button>
+        </div>
+
+        <div id="calendar"></div> <!-- Calendar rendered here -->
+    </div>
+
+    <!-- Modal for Adding Events -->
+    <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Add New Event</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addEventForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="title">Title:</label>
+                            <input type="text" id="title" name="title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Date:</label>
+                            <input type="date" id="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <textarea id="description" name="description" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Event</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        This system is a class project and is not monitored. Please do not submit any real information.
+    </footer>
+
+    <!-- jQuery, Bootstrap JS and FullCalendar JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.2/dist/fullcalendar.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                events: "/get_events/",  // Fetch events from your backend
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                editable: true,  // Enable dragging and resizing of events
+                height: 'auto',  // Adjust height automatically
+                aspectRatio: 1.5  // Ratio to avoid a squished or weird-looking calendar
+            });
+
+            // Open modal when "Add Event" button is clicked
+            $('#openModal').on('click', function() {
+                $('#eventModal').modal('show');
+            });
+
+            // Handle the form submission
+            $('#addEventForm').on('submit', function(event) {
+                event.preventDefault();  // Prevent default form submission
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "add_event" %}',  // Use the URL for your event creation view
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Add event to the calendar
+                        $('#calendar').fullCalendar('renderEvent', {
+                            title: $('#title').val(),
+                            start: $('#date').val(),
+                            description: $('#description').val(),
+                        }, true); // `true` indicates the event is not already in the calendar
+
+                        // Reset the form and hide the modal
+                        $('#addEventForm')[0].reset();
+                        $('#eventModal').modal('hide');
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle errors
+                        alert("An error occurred while adding the event: " + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

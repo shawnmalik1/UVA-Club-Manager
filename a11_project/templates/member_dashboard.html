@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+        background-color: #003366;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1020; /* Ensures navbar is above other elements */
+        }
+
+        .navbar a {
+            color: white !important;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff;
+            padding: 15px;
+            height: 100vh;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h4 {
+            color: #003366;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            color: white;
+            display: block;
+            padding: 12px 15px;
+            margin: 10px 0;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            background-color: #ff6600;
+            font-weight: bold;
+        }
+
+        .sidebar a:hover {
+            background-color: #e65c00;
+        }
+
+        .container {
+            margin-left: 270px;
+            margin-top: 30px;
+        }
+
+        .btn-orange {
+            background-color: #ff6600;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-orange:hover {
+            background-color: #e65c00;
+        }
+
+        .btn-primary {
+            background-color: #003366;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #002244;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-item {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 10px 0;
+            width: 100%;
+            color: #6c757d;
+            position: fixed;
+            bottom: 0;
+        }
+
+        .dropdown-toggle {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Member Dashboard</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="sidebar">
+        <a href="{% url 'calendar' %}" class="btn btn-orange btn-block">Calendar</a>
+        <a href="{% url 'suggestion_box' %}" class="btn btn-orange btn-block">Add Suggestion</a>
+        <a href="{% url 'chat_room' %}" class="btn btn-orange btn-block">Chat Room</a>
+        <a href="{% url 'add_expenditure' %}" class="btn btn-orange btn-block">Manage Budget</a>
+        <a href="{% url 'view_events' %}" class="btn btn-orange btn-block">Your Events</a>
+    </div>
+
+    <div class="container">
+        <div class="card p-4 mb-4 shadow-sm text-center">
+            <h1 class="mb-3">Welcome, {{ user.username }}!</h1>
+            <p><strong>Email:</strong> {{ user_email }}</p>
+            <p><strong>Joined On:</strong> {{ user_date_joined|date:"F d, Y" }}</p>
+        </div>
+
+
+        <div class="card p-4 shadow-sm mb-4 text-center">
+            <h3 style="color: #003366; font-weight: bold;">Your Points</h3>
+            <p class="display-4 font-weight-bold">{{ total_points }}</p>
+            <p class="text-muted">
+            Earn points by completing tasks!
+            </p>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h2 class="text-center mb-4">All Events</h2>
+            {% if events %}
+            <ul class="list-group" id="event-list">
+                {% for event in events %}
+                <li class="list-group-item event-item">
+                    <button class="btn btn-primary dropdown-toggle w-100" type="button"
+                        data-toggle="collapse" data-target="#event-{{ forloop.counter }}"
+                        aria-expanded="false" aria-controls="event-{{ forloop.counter }}">
+                        {{ event.title }} - {{ event.date }}
+                    </button>
+                    <div class="collapse mt-2" id="event-{{ forloop.counter }}">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>Created By:</strong> {{ event.user }}</li>
+                            <li class="list-group-item"><strong>Date:</strong> {{ event.date }}</li>
+                            <li class="list-group-item"><strong>Description:</strong> {{ event.description }}</li>
+                            <li class="list-group-item"><strong>Members:</strong>
+                                {% for member in event.members.all %}
+                                {{ member.username }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </li>
+                        </ul>
+                        {% if user in event.members.all %}
+                        <p class="text-success mt-2">You have joined this event.</p>
+                        {% elif event.id in user_join_requests %}
+                        <button type="button" class="btn btn-secondary mt-2" disabled>Request Sent</button>
+                        {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <button type="submit" name="join_event" class="btn btn-success mt-2">Request to Join Event</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-center">No events available at this time.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer>
+        This system is a class project and is not monitored. Please do not submit any real information.
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Suggestions</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            margin-top: 30px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar {
+            background-color: #003366;
+        }
+
+        .navbar a {
+            color: white !important;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #003366;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        ul {
+            padding-left: 0;
+            list-style-type: none;
+        }
+
+        .suggestion-list li {
+            background-color: #f8f9fa;
+            color: #003366;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+
+       footer {
+            margin-top: auto;
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Suggestions</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Back to Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="text-center">All Suggestions</h1>
+        <ul class="suggestion-list">
+            {% for suggestion in suggestions %}
+                <li>
+                    <strong>{{ suggestion.user.username }}:</strong> {{ suggestion.suggestion_text }}
+                    <br>(Submitted at: {{ suggestion.submitted_at }})
+                </li>
+            {% empty %}
+                <li>No suggestions available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <footer>
+        This system is a class project and is not monitored. Please do not submit any real information.
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

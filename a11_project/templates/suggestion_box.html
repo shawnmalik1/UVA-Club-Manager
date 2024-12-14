@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a Suggestion</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #eef2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #003366;
+        }
+
+
+        .navbar a {
+            color: white !important;
+        }
+
+        .container {
+            margin-top: 40px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #003366;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Improved Form Styling */
+.form-group label {
+    color: #003366;
+    font-size: 1.2rem;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    margin-top: 5px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: #003366;
+    box-shadow: 0 0 5px rgba(0, 51, 102, 0.5);
+    outline: none;
+}
+
+.btn-primary {
+    background-color: #003366;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #002850;
+}
+
+
+        .suggestion-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .suggestion-list li {
+            background-color: #f8f9fa;
+            color: #333;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-left: 5px solid #003366;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-list li strong {
+            font-weight: bold;
+            color: #003366;
+        }
+
+        footer {
+            background-color: #003366;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: auto;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand" href="#">Suggestions</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Back to Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Submit a Suggestion</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="container mt-5">
+        <h1>All Suggestions</h1>
+        <ul class="suggestion-list">
+            {% for suggestion in suggestions %}
+                <li>
+                    <strong>{{ suggestion.user.username }}:</strong> {{ suggestion.suggestion_text }}
+                    <br><small>(Submitted at: {{ suggestion.submitted_at }})</small>
+                </li>
+            {% empty %}
+                <li class="text-muted text-center">No suggestions available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <footer>
+        This system is a class project and is not monitored. Please do not submit any real information.
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
