@@ -18,6 +18,7 @@ UVA Club Manager has many capabilities and features you can use.
 UVA Club Manager was developed using the following technologies:
 - Django
 - AWS S3
+- Heroku
 - Bootstrap
 - Google Auth
 - Postgre SQL
